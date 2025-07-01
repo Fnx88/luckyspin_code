@@ -2,113 +2,63 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <title>Preview Data Google Sheet X</title>
+  <title>Cari Data Berdasarkan ID</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 20px;
-      background: #f9f9f9;
+      padding: 20px;
+      background: #f0f2f5;
+      max-width: 600px;
+      margin: auto;
+    }
+    h1 {
+      text-align: center;
+    }
+    label, input, button {
+      font-size: 1.1em;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+      margin-bottom: 12px;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #007bff;
+      border: none;
+      color: white;
+      padding: 10px 15px;
+      cursor: pointer;
+      font-weight: bold;
+      border-radius: 4px;
+      width: 100%;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #result {
+      margin-top: 20px;
+      background: white;
+      border-radius: 5px;
+      padding: 15px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
     }
     table {
-      border-collapse: collapse;
       width: 100%;
-      max-width: 900px;
-      margin: auto;
-      background: white;
+      border-collapse: collapse;
+      margin-top: 10px;
     }
     th, td {
       border: 1px solid #ccc;
-      padding: 8px 12px;
+      padding: 8px 10px;
       text-align: left;
     }
     th {
       background-color: #007bff;
       color: white;
     }
-    caption {
-      margin-bottom: 10px;
+    .not-found {
+      color: red;
       font-weight: bold;
-      font-size: 1.3em;
-    }
-    .loading {
-      text-align: center;
-      margin-top: 40px;
-      font-size: 1.1em;
-      color: #555;
-    }
-  </style>
-</head>
-<body>
-
-  <table id="data-table" hidden>
-    <caption>Data Google Sheet X</caption>
-    <thead id="table-head"></thead>
-    <tbody id="table-body"></tbody>
-  </table>
-
-  <div class="loading" id="loading">Memuat data...</div>
-
-  <script>
-    const SHEET_ID = '1gaHmbdBRdFiHOtL-9jx8FR0eNNSOJYXOSmjX8biGJC0';
-    const SHEET_NAME = 'X';
-    const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
-
-    function parseGoogleSheetJSON(responseText) {
-      // Response Text format: google.visualization.Query.setResponse(<json>);
-      const jsonStr = responseText.match(/google\.visualization\.Query\.setResponse\((.*)\);/s)[1];
-      return JSON.parse(jsonStr);
-    }
-
-    function renderTable(dataTable) {
-      const table = document.getElementById('data-table');
-      const thead = document.getElementById('table-head');
-      const tbody = document.getElementById('table-body');
-
-      // Clear existing content
-      thead.innerHTML = '';
-      tbody.innerHTML = '';
-
-      const cols = dataTable.table.cols;
-      const rows = dataTable.table.rows;
-
-      // Render header
-      const trHead = document.createElement('tr');
-      cols.forEach(col => {
-        const th = document.createElement('th');
-        th.textContent = col.label || col.id;
-        trHead.appendChild(th);
-      });
-      thead.appendChild(trHead);
-
-      // Render rows
-      rows.forEach(row => {
-        const tr = document.createElement('tr');
-        row.c.forEach(cell => {
-          const td = document.createElement('td');
-          td.textContent = cell ? cell.v : '';
-          tr.appendChild(td);
-        });
-        tbody.appendChild(tr);
-      });
-
-      document.getElementById('loading').hidden = true;
-      table.hidden = false;
-    }
-
-    async function fetchAndRender() {
-      try {
-        const res = await fetch(URL);
-        if (!res.ok) throw new Error('Gagal memuat data');
-        const text = await res.text();
-        const data = parseGoogleSheetJSON(text);
-        renderTable(data);
-      } catch (error) {
-        document.getElementById('loading').textContent = 'Error: ' + error.message;
-      }
-    }
-
-    fetchAndRender();
-  </script>
-
-</body>
-</html>
+      text-align: c
