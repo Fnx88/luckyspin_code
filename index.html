@@ -87,13 +87,12 @@
     }
 
     // Format Date(2025,6,1) → 1 Jul 2025
-    function formatGoogleDate(dateObj) {
-      if (!dateObj) return '';
-      const d = new Date(dateObj);
-      const options = { day: 'numeric', month: 'short', year: 'numeric' };
-      return d.toLocaleDateString('id-ID', options).replace(/\./g, '');
-    }
-
+    function formatGoogleDate(val) {
+  if (!val) return '';
+  const date = new Date(val);
+  if (isNaN(date.getTime())) return ''; // jika bukan tanggal valid
+  return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+}
     async function fetchSheetData() {
       try {
         const res = await fetch(URL);
