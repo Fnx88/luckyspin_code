@@ -117,7 +117,8 @@
           return {
             ID: cells[0]?.v || '',
             KODE: cells[1]?.v || '',
-            TGL: formatGoogleDate(cells[2]?.v)
+            TGL: formatGoogleDate(cells[2])
+
           };
         });
         btnSearch.disabled = false;
