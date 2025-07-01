@@ -2,56 +2,42 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <title>Cari Data Berdasarkan ID</title>
+  <title>Cari Data Google Sheet Live</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
-      background: #f0f2f5;
-      max-width: 600px;
+      max-width: 700px;
       margin: auto;
+      background: #f9f9f9;
     }
-    h1 {
-      text-align: center;
-    }
-    label, input, button {
+    input, button {
       font-size: 1.1em;
-    }
-    input {
-      width: 100%;
       padding: 8px;
-      margin-top: 4px;
-      margin-bottom: 12px;
+      margin-top: 8px;
+      width: 100%;
       box-sizing: border-box;
     }
     button {
       background-color: #007bff;
-      border: none;
       color: white;
-      padding: 10px 15px;
+      border: none;
       cursor: pointer;
-      font-weight: bold;
+      margin-bottom: 20px;
       border-radius: 4px;
-      width: 100%;
+      font-weight: bold;
     }
     button:hover {
       background-color: #0056b3;
     }
-    #result {
-      margin-top: 20px;
-      background: white;
-      border-radius: 5px;
-      padding: 15px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.1);
-    }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 10px;
+      background: white;
     }
     th, td {
       border: 1px solid #ccc;
-      padding: 8px 10px;
+      padding: 8px;
       text-align: left;
     }
     th {
@@ -67,46 +53,55 @@
 </head>
 <body>
 
-  <h1>Cari Data Berdasarkan ID</h1>
+  <h1>Cari Data Google Sheet Live</h1>
 
-  <label for="input-id">Masukkan ID:</label>
-  <input type="text" id="input-id" placeholder="Contoh: maddox" />
-
+  <input type="text" id="input-id" placeholder="Masukkan ID misal: maddox" />
   <button id="btn-search">Cari</button>
 
   <div id="result"></div>
 
   <script>
-    // Data static dari spreadsheet, bisa kamu tambah/ubah manual di sini
-    const data = [
-      { ID: 'Pes2010', KODE: 'D7TU1QEG6F', TGL: '1/Jul/2025' },
-      { ID: 'Alunghoki99', KODE: 'LWNVRTD1KP', TGL: '1/Jul/2025' },
-      { ID: 'Kalender88', KODE: '4VFHTJWZDQ', TGL: '1/Jul/2025' },
-      { ID: 'logos1234', KODE: '2NHMKX71F9', TGL: '1/Jul/2025' },
-      { ID: 'maddox', KODE: 'CK5NLJSUXZ', TGL: '1/Jul/2025' },
-      { ID: 'maddox', KODE: 'CK5NLJSUVZ', TGL: '2/Jul/2025' }
-    ];
+    const SHEET_ID = '1gaHmbdBRdFiHOtL-9jx8FR0eNNSOJYXOSmjX8biGJC0';
+    const SHEET_NAME = 'X';
+    const URL = 'https://docs.google.com/spreadsheets/d/1gaHmbdBRdFiHOtL-9jx8FR0eNNSOJYXOSmjX8biGJC0/gviz/tq?tqx=out:json&sheet=X';
 
-    const inputId = document.getElementById('input-id');
-    const btnSearch = document.getElementById('btn-search');
-    const resultDiv = document.getElementById('result');
 
-    btnSearch.addEventListener('click', () => {
-      const searchId = inputId.value.trim();
-      if (!searchId) {
-        resultDiv.innerHTML = '<p class="not-found">Mohon masukkan ID terlebih dahulu.</p>';
-        return;
+    // Parsing response JSONP Google Sheets
+    function parseGoogleSheetJSON(responseText) {
+      const jsonStr = responseText.match(/google\.visualization\.Query\.setResponse\((.*)\);/s)[1];
+      return JSON.parse(jsonStr);
+    }
+
+    let allData = [];
+
+    async function fetchSheetData() {
+      try {
+        const res = await fetch(URL);
+        if (!res.ok) throw new Error('Gagal memuat data Google Sheet');
+        const text = await res.text();
+        const data = parseGoogleSheetJSON(text);
+        // Simpan data rows ke allData
+        // Mapping setiap baris jadi objek {ID, KODE, TGL} berdasarkan kolom pertama 3
+        allData = data.table.rows.map(row => {
+          const cells = row.c;
+          return {
+            ID: cells[0] ? cells[0].v : '',
+            KODE: cells[1] ? cells[1].v : '',
+            TGL: cells[2] ? cells[2].v : ''
+          };
+        });
+      } catch (err) {
+        document.getElementById('result').innerHTML = `<p class="not-found">${err.message}</p>`;
       }
+    }
 
-      // Cari semua data yang ID-nya sama (case insensitive)
-      const filtered = data.filter(d => d.ID.toLowerCase() === searchId.toLowerCase());
-
+    function renderResult(filtered) {
+      const resultDiv = document.getElementById('result');
       if (filtered.length === 0) {
-        resultDiv.innerHTML = `<p class="not-found">ID "${searchId}" tidak ditemukan.</p>`;
+        resultDiv.innerHTML = '<p class="not-found">ID tidak ditemukan.</p>';
         return;
       }
 
-      // Buat tabel hasil
       let html = '<table><thead><tr><th>ID</th><th>KODE</th><th>TGL</th></tr></thead><tbody>';
       filtered.forEach(row => {
         html += `<tr><td>${row.ID}</td><td>${row.KODE}</td><td>${row.TGL}</td></tr>`;
@@ -114,12 +109,20 @@
       html += '</tbody></table>';
 
       resultDiv.innerHTML = html;
+    }
+
+    document.getElementById('btn-search').addEventListener('click', () => {
+      const inputId = document.getElementById('input-id').value.trim().toLowerCase();
+      if (!inputId) {
+        document.getElementById('result').innerHTML = '<p class="not-found">Mohon masukkan ID terlebih dahulu.</p>';
+        return;
+      }
+      const filtered = allData.filter(row => row.ID.toLowerCase() === inputId);
+      renderResult(filtered);
     });
 
-    // Optional: tekan Enter di input langsung cari
-    inputId.addEventListener('keyup', e => {
-      if (e.key === 'Enter') btnSearch.click();
-    });
+    // Fetch data sekali saat halaman dimuat
+    fetchSheetData();
   </script>
 
 </body>
