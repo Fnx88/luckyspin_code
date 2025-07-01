@@ -2,20 +2,46 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <title>Preview Data Sheet X</title>
+  <title>Preview Data Google Sheet X</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
-    table { border-collapse: collapse; width: 100%; max-width: 900px; margin: auto; background: white; }
-    th, td { border: 1px solid #ccc; padding: 8px 12px; text-align: left; }
-    th { background-color: #007bff; color: white; }
-    caption { margin-bottom: 10px; font-weight: bold; font-size: 1.3em; }
-    .loading { text-align: center; margin-top: 40px; font-size: 1.1em; color: #555; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f9f9f9;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      max-width: 900px;
+      margin: auto;
+      background: white;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px 12px;
+      text-align: left;
+    }
+    th {
+      background-color: #007bff;
+      color: white;
+    }
+    caption {
+      margin-bottom: 10px;
+      font-weight: bold;
+      font-size: 1.3em;
+    }
+    .loading {
+      text-align: center;
+      margin-top: 40px;
+      font-size: 1.1em;
+      color: #555;
+    }
   </style>
 </head>
 <body>
 
   <table id="data-table" hidden>
-    <caption>Data dari Sheet X</caption>
+    <caption>Data Google Sheet X</caption>
     <thead id="table-head"></thead>
     <tbody id="table-body"></tbody>
   </table>
@@ -23,28 +49,38 @@
   <div class="loading" id="loading">Memuat data...</div>
 
   <script>
-    function renderTable(data) {
-      const table = document.getElementById('data-table');
-      const thead = document.getElementById('table-head');
-      const tbody = document.getElementById('table-body');
+    // Ganti URL ini dengan link CSV hasil publish Google Sheet-mu
+    const CSV_URL = 'https://docs.google.com/spreadsheets/d/1gaHmbdBRdFiHOtL-9jx8FR0eNNSOJYXOSmjX8biGJC0/gviz/tq?tqx=out:json&sheet=X';
 
+    function parseCSV(text) {
+      const lines = text.trim().split('\n');
+      return lines.map(line => {
+        // Split CSV dengan mengasumsikan tidak ada koma dalam data (simple)
+        return line.split(',');
+      });
+    }
+
+    function renderTable(data) {
       if (data.length === 0) {
         document.getElementById('loading').textContent = 'Data kosong.';
         return;
       }
+      const table = document.getElementById('data-table');
+      const thead = document.getElementById('table-head');
+      const tbody = document.getElementById('table-body');
 
-      // Buat header
+      // Render header
       const headers = data[0];
       const trHead = document.createElement('tr');
-      headers.forEach(header => {
+      headers.forEach(h => {
         const th = document.createElement('th');
-        th.textContent = header;
+        th.textContent = h;
         trHead.appendChild(th);
       });
       thead.appendChild(trHead);
 
-      // Buat baris data
-      for (let i = 1; i < data.length; i++) {
+      // Render data rows
+      for(let i = 1; i < data.length; i++) {
         const tr = document.createElement('tr');
         data[i].forEach(cell => {
           const td = document.createElement('td');
@@ -58,11 +94,20 @@
       table.hidden = false;
     }
 
-    // Panggil server Apps Script untuk ambil data sheet
-    google.script.run.withSuccessHandler(renderTable).getSheetData();
-  </script>
+    async function fetchAndRender() {
+      try {
+        const response = await fetch(CSV_URL);
+        if (!response.ok) throw new Error('Gagal memuat data');
+        const text = await response.text();
+        const data = parseCSV(text);
+        renderTable(data);
+      } catch (error) {
+        document.getElementById('loading').textContent = 'Error: ' + error.message;
+      }
+    }
 
-  <script src="https://apis.google.com/js/platform.js"></script>
+    fetchAndRender();
+  </script>
 
 </body>
 </html>
