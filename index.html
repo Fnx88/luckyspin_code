@@ -22,7 +22,7 @@
       hasil.innerHTML = "Mengecek...";
 
       try {
-        const res = await fetch(`https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLiy33W-sg5_UbRKg68MjkC6_1quJfrTK4oHJ1ILRSN2q_k-amOlqi3v3E6sN68iE1NZzvW76BtI7qiQwOIX0jiV4r7IRSXQmfG_caHzhY8d9fvlq0nlCfpw1qS-FA0_C81uzAxSoxxeddZNBFcapyQugdf2HRifn5INsR0ZT97q7gXiYV1vQyEVcVXWNDN7mEd17-Y45Z99LpjHkNxyxQFtNIX4QzRggLURmmNa_mWcRjHS3q8INA39Cbng5Z4WdskT9M0gEOW_5lxalroO1OczyQ1cAg&lib=MYSSphNCWjlENQihpHr4_54apYJ7Ke8Hx/exec?kode=${kode}`);
+        const res = await fetch(`https://script.google.com/macros/s/AKfycbyke35SnhrqyihJOF5vFaKmIuomuU1snWmkqcDSp8qzwmWwnrgRwRjmEbbOOhIOUuP8/exec/exec?kode=${kode}`);
         const data = await res.json();
         hasil.innerHTML = `<b>Status:</b> ${data.status}<br><b>Keterangan:</b> ${data.keterangan}`;
       } catch (e) {
