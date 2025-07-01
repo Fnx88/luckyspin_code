@@ -49,46 +49,47 @@
   <div class="loading" id="loading">Memuat data...</div>
 
   <script>
-    // Ganti URL ini dengan link CSV hasil publish Google Sheet-mu
-    const CSV_URL = 'https://docs.google.com/spreadsheets/d/1gaHmbdBRdFiHOtL-9jx8FR0eNNSOJYXOSmjX8biGJC0/gviz/tq?tqx=out:json&sheet=X';
+    const SHEET_ID = '1gaHmbdBRdFiHOtL-9jx8FR0eNNSOJYXOSmjX8biGJC0';
+    const SHEET_NAME = 'X';
+    const URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
 
-    function parseCSV(text) {
-      const lines = text.trim().split('\n');
-      return lines.map(line => {
-        // Split CSV dengan mengasumsikan tidak ada koma dalam data (simple)
-        return line.split(',');
-      });
+    function parseGoogleSheetJSON(responseText) {
+      // Response Text format: google.visualization.Query.setResponse(<json>);
+      const jsonStr = responseText.match(/google\.visualization\.Query\.setResponse\((.*)\);/s)[1];
+      return JSON.parse(jsonStr);
     }
 
-    function renderTable(data) {
-      if (data.length === 0) {
-        document.getElementById('loading').textContent = 'Data kosong.';
-        return;
-      }
+    function renderTable(dataTable) {
       const table = document.getElementById('data-table');
       const thead = document.getElementById('table-head');
       const tbody = document.getElementById('table-body');
 
+      // Clear existing content
+      thead.innerHTML = '';
+      tbody.innerHTML = '';
+
+      const cols = dataTable.table.cols;
+      const rows = dataTable.table.rows;
+
       // Render header
-      const headers = data[0];
       const trHead = document.createElement('tr');
-      headers.forEach(h => {
+      cols.forEach(col => {
         const th = document.createElement('th');
-        th.textContent = h;
+        th.textContent = col.label || col.id;
         trHead.appendChild(th);
       });
       thead.appendChild(trHead);
 
-      // Render data rows
-      for(let i = 1; i < data.length; i++) {
+      // Render rows
+      rows.forEach(row => {
         const tr = document.createElement('tr');
-        data[i].forEach(cell => {
+        row.c.forEach(cell => {
           const td = document.createElement('td');
-          td.textContent = cell;
+          td.textContent = cell ? cell.v : '';
           tr.appendChild(td);
         });
         tbody.appendChild(tr);
-      }
+      });
 
       document.getElementById('loading').hidden = true;
       table.hidden = false;
@@ -96,10 +97,10 @@
 
     async function fetchAndRender() {
       try {
-        const response = await fetch(CSV_URL);
-        if (!response.ok) throw new Error('Gagal memuat data');
-        const text = await response.text();
-        const data = parseCSV(text);
+        const res = await fetch(URL);
+        if (!res.ok) throw new Error('Gagal memuat data');
+        const text = await res.text();
+        const data = parseGoogleSheetJSON(text);
         renderTable(data);
       } catch (error) {
         document.getElementById('loading').textContent = 'Error: ' + error.message;
