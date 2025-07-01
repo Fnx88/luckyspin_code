@@ -1,34 +1,68 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-  <title>Cek Kode Kupon</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <title>Preview Data Sheet X</title>
   <style>
-    body { font-family: Arial; padding: 20px; max-width: 400px; margin: auto; }
-    input, button { width: 100%; padding: 10px; margin-top: 10px; }
-    #hasil { margin-top: 20px; }
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
+    table { border-collapse: collapse; width: 100%; max-width: 900px; margin: auto; background: white; }
+    th, td { border: 1px solid #ccc; padding: 8px 12px; text-align: left; }
+    th { background-color: #007bff; color: white; }
+    caption { margin-bottom: 10px; font-weight: bold; font-size: 1.3em; }
+    .loading { text-align: center; margin-top: 40px; font-size: 1.1em; color: #555; }
   </style>
 </head>
 <body>
-  <h2>Cek Kode Kupon</h2>
-  <input type="text" id="kode" placeholder="Masukkan kode kupon...">
-  <button onclick="cekKupon()">Cek</button>
-  <div id="hasil"></div>
+
+  <table id="data-table" hidden>
+    <caption>Data dari Sheet X</caption>
+    <thead id="table-head"></thead>
+    <tbody id="table-body"></tbody>
+  </table>
+
+  <div class="loading" id="loading">Memuat data...</div>
 
   <script>
-    async function cekKupon() {
-      const kode = document.getElementById("kode").value;
-      const hasil = document.getElementById("hasil");
-      hasil.innerHTML = "Mengecek...";
+    function renderTable(data) {
+      const table = document.getElementById('data-table');
+      const thead = document.getElementById('table-head');
+      const tbody = document.getElementById('table-body');
 
-      try {
-        const res = await fetch(`https://script.google.com/macros/s/AKfycbyke35SnhrqyihJOF5vFaKmIuomuU1snWmkqcDSp8qzwmWwnrgRwRjmEbbOOhIOUuP8/exec/exec?kode=${kode}`);
-        const data = await res.json();
-        hasil.innerHTML = `<b>Status:</b> ${data.status}<br><b>Keterangan:</b> ${data.keterangan}`;
-      } catch (e) {
-        hasil.innerHTML = "Terjadi kesalahan. Coba lagi.";
+      if (data.length === 0) {
+        document.getElementById('loading').textContent = 'Data kosong.';
+        return;
       }
+
+      // Buat header
+      const headers = data[0];
+      const trHead = document.createElement('tr');
+      headers.forEach(header => {
+        const th = document.createElement('th');
+        th.textContent = header;
+        trHead.appendChild(th);
+      });
+      thead.appendChild(trHead);
+
+      // Buat baris data
+      for (let i = 1; i < data.length; i++) {
+        const tr = document.createElement('tr');
+        data[i].forEach(cell => {
+          const td = document.createElement('td');
+          td.textContent = cell;
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      }
+
+      document.getElementById('loading').hidden = true;
+      table.hidden = false;
     }
+
+    // Panggil server Apps Script untuk ambil data sheet
+    google.script.run.withSuccessHandler(renderTable).getSheetData();
   </script>
+
+  <script src="https://apis.google.com/js/platform.js"></script>
+
 </body>
 </html>
