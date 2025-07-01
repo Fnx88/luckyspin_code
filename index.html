@@ -61,4 +61,66 @@
     .not-found {
       color: red;
       font-weight: bold;
-      text-align: c
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Cari Data Berdasarkan ID</h1>
+
+  <label for="input-id">Masukkan ID:</label>
+  <input type="text" id="input-id" placeholder="Contoh: maddox" />
+
+  <button id="btn-search">Cari</button>
+
+  <div id="result"></div>
+
+  <script>
+    // Data static dari spreadsheet, bisa kamu tambah/ubah manual di sini
+    const data = [
+      { ID: 'Pes2010', KODE: 'D7TU1QEG6F', TGL: '1/Jul/2025' },
+      { ID: 'Alunghoki99', KODE: 'LWNVRTD1KP', TGL: '1/Jul/2025' },
+      { ID: 'Kalender88', KODE: '4VFHTJWZDQ', TGL: '1/Jul/2025' },
+      { ID: 'logos1234', KODE: '2NHMKX71F9', TGL: '1/Jul/2025' },
+      { ID: 'maddox', KODE: 'CK5NLJSUXZ', TGL: '1/Jul/2025' },
+      { ID: 'maddox', KODE: 'CK5NLJSUVZ', TGL: '2/Jul/2025' }
+    ];
+
+    const inputId = document.getElementById('input-id');
+    const btnSearch = document.getElementById('btn-search');
+    const resultDiv = document.getElementById('result');
+
+    btnSearch.addEventListener('click', () => {
+      const searchId = inputId.value.trim();
+      if (!searchId) {
+        resultDiv.innerHTML = '<p class="not-found">Mohon masukkan ID terlebih dahulu.</p>';
+        return;
+      }
+
+      // Cari semua data yang ID-nya sama (case insensitive)
+      const filtered = data.filter(d => d.ID.toLowerCase() === searchId.toLowerCase());
+
+      if (filtered.length === 0) {
+        resultDiv.innerHTML = `<p class="not-found">ID "${searchId}" tidak ditemukan.</p>`;
+        return;
+      }
+
+      // Buat tabel hasil
+      let html = '<table><thead><tr><th>ID</th><th>KODE</th><th>TGL</th></tr></thead><tbody>';
+      filtered.forEach(row => {
+        html += `<tr><td>${row.ID}</td><td>${row.KODE}</td><td>${row.TGL}</td></tr>`;
+      });
+      html += '</tbody></table>';
+
+      resultDiv.innerHTML = html;
+    });
+
+    // Optional: tekan Enter di input langsung cari
+    inputId.addEventListener('keyup', e => {
+      if (e.key === 'Enter') btnSearch.click();
+    });
+  </script>
+
+</body>
+</html>
