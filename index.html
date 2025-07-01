@@ -1,32 +1,39 @@
 <!DOCTYPE html>
-<html lang="id"> 
+<html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <title>Generate Kode Kupon Luckyspin SLOTBANGJAGO</title>
-  
+  <title>Pencarian Kupon LuckySpin</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       padding: 20px;
-      max-width: 700px;
+      background: #f9f9f9;
+      max-width: 800px;
       margin: auto;
-      background: #ffdbdc;
+    }
+    .logo-container {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    h1 {
+      text-align: center;
+      margin-top: 5px;
+      margin-bottom: 20px;
     }
     input, button {
       font-size: 1.1em;
-      padding: 8px;
-      margin-top: 8px;
+      padding: 10px;
+      margin: 5px 0;
       width: 100%;
       box-sizing: border-box;
     }
     button {
-      background-color: #800000;
+      background-color: #007bff;
       color: white;
       border: none;
       cursor: pointer;
-      margin-bottom: 20px;
-      border-radius: 4px;
       font-weight: bold;
+      border-radius: 4px;
     }
     button:hover {
       background-color: #0056b3;
@@ -34,6 +41,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
+      margin-top: 20px;
       background: white;
     }
     th, td {
@@ -48,84 +56,91 @@
     .not-found {
       color: red;
       font-weight: bold;
+      margin-top: 20px;
       text-align: center;
     }
   </style>
 </head>
 <body>
-  <div style="display: flex; justify-content: center; align-items: center; ">
-    <img src="https://16slotbangjago.com/assets/banner/IND/Logo%20Slot%20Bang%20Jago%20200x90.png" width="200" alt="Logo" />
+
+  <div class="logo-container">
+    <img src="https://16slotbangjago.com/assets/banner/IND/Logo%20Slot%20Bang%20Jago%20200x90.png" width="200" alt="Logo">
   </div>
 
-  <h1 style="text-align: center;">PENCARIAN KODE KUPON LUCKYSPIN</h1>
-  
-  <input type="text" id="input-id" placeholder="Masukkan USERID pada Situs Slotbangjago" />
-  <button id="btn-search">Cari</button>
+  <h1>PENCARIAN KODE KUPON LUCKYSPIN</h1>
+
+  <input type="text" id="input-id" placeholder="Masukkan ID (contoh: maddox)">
+  <button id="btn-search" disabled>Cari</button>
 
   <div id="result"></div>
 
   <script>
-    const SHEET_ID = '1JKPcJRBCJ3g57uRqLjr4kb2VFWbWz0AkjJ0aiI9MWiM';
-    const SHEET_NAME = 'BotLucky';
-    const URL = 'https://docs.google.com/spreadsheets/d/1JKPcJRBCJ3g57uRqLjr4kb2VFWbWz0AkjJ0aiI9MWiM/gviz/tq?tqx=out:json&sheet=X';
+    const URL = 'https://docs.google.com/spreadsheets/d/1gaHmbdBRdFiHOtL-9jx8FR0eNNSOJYXOSmjX8biGJC0/gviz/tq?tqx=out:json&sheet=X';
+    const btnSearch = document.getElementById('btn-search');
+    const resultDiv = document.getElementById('result');
+    let allData = [];
 
-
-    // Parsing response JSONP Google Sheets
-    function parseGoogleSheetJSON(responseText) {
-      const jsonStr = responseText.match(/google\.visualization\.Query\.setResponse\((.*)\);/s)[1];
+    // Fungsi untuk parsing output Google gviz
+    function parseGoogleSheetJSON(text) {
+      const jsonStr = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);/)[1];
       return JSON.parse(jsonStr);
     }
 
-    let allData = [];
+    // Format Date(2025,6,1) → 1 Jul 2025
+    function formatGoogleDate(dateObj) {
+      if (!dateObj) return '';
+      const d = new Date(dateObj);
+      const options = { day: 'numeric', month: 'short', year: 'numeric' };
+      return d.toLocaleDateString('id-ID', options).replace(/\./g, '');
+    }
 
     async function fetchSheetData() {
       try {
         const res = await fetch(URL);
-        if (!res.ok) throw new Error('Gagal memuat data Google Sheet');
         const text = await res.text();
         const data = parseGoogleSheetJSON(text);
-        // Simpan data rows ke allData
-        // Mapping setiap baris jadi objek {ID, KODE, TGL} berdasarkan kolom pertama 3
         allData = data.table.rows.map(row => {
           const cells = row.c;
           return {
-            ID: cells[0] ? cells[0].v : '',
-            KODE: cells[1] ? cells[1].v : '',
-            TGL: cells[2] ? cells[2].v : ''
+            ID: cells[0]?.v || '',
+            KODE: cells[1]?.v || '',
+            TGL: formatGoogleDate(cells[2]?.v)
           };
         });
+        btnSearch.disabled = false;
       } catch (err) {
-        document.getElementById('result').innerHTML = `<p class="not-found">${err.message}</p>`;
+        resultDiv.innerHTML = `<p class="not-found">Gagal memuat data: ${err.message}</p>`;
       }
     }
 
     function renderResult(filtered) {
-      const resultDiv = document.getElementById('result');
       if (filtered.length === 0) {
         resultDiv.innerHTML = '<p class="not-found">ID tidak ditemukan.</p>';
         return;
       }
 
-      let html = '<table><thead><tr><th>ID</th><th>KODE</th><th>TGL</th></tr></thead><tbody>';
+      let html = `
+        <table>
+          <thead><tr><th>ID</th><th>KODE</th><th>TANGGAL</th></tr></thead>
+          <tbody>
+      `;
       filtered.forEach(row => {
         html += `<tr><td>${row.ID}</td><td>${row.KODE}</td><td>${row.TGL}</td></tr>`;
       });
       html += '</tbody></table>';
-
       resultDiv.innerHTML = html;
     }
 
-    document.getElementById('btn-search').addEventListener('click', () => {
+    btnSearch.addEventListener('click', () => {
       const inputId = document.getElementById('input-id').value.trim().toLowerCase();
       if (!inputId) {
-        document.getElementById('result').innerHTML = '<p class="not-found">Mohon masukkan ID terlebih dahulu.</p>';
+        resultDiv.innerHTML = '<p class="not-found">Masukkan ID terlebih dahulu.</p>';
         return;
       }
       const filtered = allData.filter(row => row.ID.toLowerCase() === inputId);
       renderResult(filtered);
     });
 
-    // Fetch data sekali saat halaman dimuat
     fetchSheetData();
   </script>
 
